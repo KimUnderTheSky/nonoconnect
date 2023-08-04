@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from posting.models import Feed, Feed_image ,Comment, Comment_image
+from posting.models import Feed, Feed_image, Comment, Comment_image
 
 
 class FeedImageSerializer(serializers.ModelSerializer):

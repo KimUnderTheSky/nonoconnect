@@ -18,7 +18,7 @@ class Feed(models.Model):
 
 class Feed_image(models.Model):
     feed = models.ForeignKey(Feed, on_delete=models.CASCADE,related_name='feed') # 다대일 관계 지정
-    image = models.ImageField(default='media/posting/default_image.jpeg', upload_to='posting', blank=True, null=True)
+    image = models.ImageField(default='media/posting/default_image.jpeg', upload_to='feed_images/', blank=True, null=True)
 
     class Meta:
         db_table = 'Feed_image'
@@ -36,7 +36,7 @@ class Comment(models.Model):
 
 class Comment_image(models.Model):
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE,related_name='comment') # 다대일 관계 지정
-    image = models.ImageField(default='media/posting/default_image.jpeg', upload_to='posting', blank=True, null=True)
+    image = models.ImageField(default='media/posting/default_image.jpeg', upload_to='feed_images/', blank=True, null=True)
 
     class Meta:
         db_table = 'Comment_image'
