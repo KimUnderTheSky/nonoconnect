@@ -1,12 +1,14 @@
 import json, re , bcrypt, jwt
+
+
 from json.decoder import JSONDecodeError
-
-
 from django.http import JsonResponse
 from django.views import View
 from django.db.models import Q
+from rest_framework.views import APIView
+
 from my_settings import SECRET, ALGORITHM
-from users.models import User
+from users.models import *
 
 # from django.shortcuts import render
 # from django.contrib.auth import authenticate, login, logout
@@ -39,6 +41,9 @@ class SignUp(View):
             email_pattern = re.compile('[^@]+@[^@]+\.[^@]+')
             phone_number_pattern = re.compile('^[0-9]{1,15}$')
             nickname_pattern      = re.compile('^(?=.*[a-z])[a-z0-9_.]+$')
+
+            # regex_email    = '^[a-zA-Z0-9+-_.]+@[a-zA-Z0-9_-]+\.[a-zA-Z0-9-.]+$'
+            # regex_password = '\S{8,25}'
 
 
             if not (
@@ -136,3 +141,35 @@ class Logout(View) :
 # def logout_view(request) :
 #     logout(request)
 #     return redirect("")
+
+
+#비밀번호찾기
+class FindPassword():
+    def get(self, request):
+        phone_num = request.query_params["phone"]
+
+        if User.objects.filter(phone = phone_num).exists():
+            user_profile = User.objects.get(phone = phone_num)
+
+    def patch(self, request) :
+        new_Password = request.data.get("new_password")
+
+        try :
+            user = User.objects.get()
+            user.set_password()
+            
+        except KeyError:
+            return JsonResponse ({'message':'KEY_ERROR'}, status = 400)
+        
+
+# 전화번호 인증
+class SmsAuth(APIView):
+    def post(self, request):
+        try:
+            phoneNumber = request.data.get("phone_num")
+
+        except KeyError:
+            return JsonResponse ({'message':'KEY_ERROR'}, status = 400)
+        else :
+            AuthSMS.objects.update_or_create(phoneNumber = phoneNumber)
+            return
