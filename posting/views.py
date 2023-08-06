@@ -2,6 +2,11 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework.views import APIView
 from .models import Feed, Comment, User
+from .serializers import FeedSerializer, FeedImageSerializer
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from rest_framework import status
+
 # Create your views here.
 class Main(APIView):
     # 메인화면 피드 불러오기
@@ -13,7 +18,7 @@ class Main(APIView):
                 return JsonResponse ({'message':'NOSESSION_ERROR'}, status = 400)
             
             # 해당 사용자 유저 정보 불러오기
-            user = User.objects.filter(user_id = user_id).first()
+            user = User.objects.filter(id = user_id).first()
 
             #모든 피드 데이터 불러오기
             feed_object_list = Feed.objects.all().order_by("-feed_id")
@@ -47,18 +52,18 @@ class Main(APIView):
         except:
             return JsonResponse({'message' : 'JSON_DECODE_ERROR'}, status = 400)
 
-        
-
 class Feed_View_Set(APIView):
     # 피드 생성
     def post(self, request):
-        try: 
+        try:
+            # feed 생성 
             user_id = request.data.get("user_id")
             title = request.data.get('title')
             context = request.data.get('context')
             longitude = request.data.get('longitude')
             latitude = request.data.get('latitude')
-
+            image = request.FILES.getlist('FILES')
+            
             Feed.objects.create(
                 user_id = user_id,
                 title = title,
@@ -187,4 +192,15 @@ class Comment_View_Set(APIView):
 
             return JsonResponse({"message": "Comment deleted successfully."})    
         except:
-            return JsonResponse({'message' : 'JSON_DECODE_ERROR'}, status = 400)            
+            return JsonResponse({'message' : 'JSON_DECODE_ERROR'}, status = 400)        
+
+
+        
+class CreateFeedView(APIView):
+    def post(self, request):
+        # 요청 데이터를 FeedSerializer에 전달하여 유효성 검사와 객체 생성을 수행합니다.
+        serializer = FeedSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    

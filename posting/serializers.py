@@ -14,16 +14,31 @@ class FeedImageSerializer(serializers.ModelSerializer):
 class FeedSerializer(serializers.ModelSerializer):
 
     images = FeedImageSerializer(many=True, read_only=True)
-
+    print(images)
 
     class Meta:
         model = Feed
-        fields = ['feed_id', 'title', 'context', 'created_date', 'updated_date', 'status', 'longitude', 'latitude']
+        fields = ['feed_id', 'title', 'context', 'created_date', 'updated_date', 'status', 'longitude', 'latitude', 'user_id','images']
         
         
     def create(self, validated_data):
-        instance = Feed.objects.create(**validated_data)
-        image_set = self.context['request'].FILES
-        for image_data in image_set.getlist('image'):
-            Feed_image.objects.create(Feed=instance, image=image_data)
-        return instance
+        print(self)
+        print(validated_data)
+        # 이미지들을 context의 request.FILES에서 가져옵니다.
+        image_set = self.data.getlist('FILES')
+
+        # Feed 객체를 생성하고 저장합니다.
+        feed = Feed.objects.create(
+            title=self.data.get('title'),
+            context=self.data.get('context'),
+            status=True,
+            longitude=self.data.get('longitude'),
+            latitude=self.data.get('latitude'),
+            user=self.data.get('user_id'),
+        )
+
+        # 이미지들을 Feed_image 모델에 저장합니다.
+        for image_data in image_set:
+            Feed_image.objects.create(feed=feed, image=image_data)
+
+        return feed

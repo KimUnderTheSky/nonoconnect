@@ -12,7 +12,7 @@ class Feed(models.Model):
     status = models.BooleanField(default=True)
     longitude = models.FloatField()
     latitude = models.FloatField()
-
+    
     class Meta:
         db_table = 'Feed'
 
