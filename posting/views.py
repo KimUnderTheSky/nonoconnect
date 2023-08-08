@@ -1,114 +1,112 @@
+import uuid
 from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework.views import APIView
-from .models import Feed, Comment, User
+from .models import Feed, Comment, User, Feed_image
 from .serializers import FeedSerializer, FeedImageSerializer
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
+import os
+from django.conf import settings
+
 
 # Create your views here.
 class Main(APIView):
     # 메인화면 피드 불러오기
     def get(self, request):
-        try:
-            # session에 user_id값이 없으면 에러
-            user_id = request.session.get('user_id', None)
-            if user_id is None:
-                return JsonResponse ({'message':'NOSESSION_ERROR'}, status = 400)
-            
-            # 해당 사용자 유저 정보 불러오기
-            user = User.objects.filter(id = user_id).first()
+        # session에 user_id값이 없으면 에러
+        user_id = request.data.get('user_id', None)
+        if user_id is None:
+            return JsonResponse ({'message':'NOSESSION_ERROR'}, status = 400)
+        
+        # 해당 사용자 유저 정보 불러오기
+        user = User.objects.filter(id = user_id).first()
 
-            #모든 피드 데이터 불러오기
-            feed_object_list = Feed.objects.all().order_by("-feed_id")
-            feed_list = []
-            for feed in feed_object_list: 
-                #피드를 쓴 user 객체 생성
-                user = User.objects.filter(user_id= feed.user_id.user_id).first() 
-                # 피드에 달린 댓글 전부가져오기
-                comment_object_list = Comment.objects.filter(feed_id=feed.feed_id) 
-                comment_list = []
-                for comment in comment_object_list:
-                    # 댓글을 쓴 유저 객체 가져오기
-                    user = User.objects.filter(user_id=comment.user_id).first() 
-                    comment_list.append(dict(feed_id = comment.feed_id,
-                                        user_id=user.user_id,
-                                        comment_id=comment.comment_id,
-                                        user_nickname = user.nickname,
-                                        context = comment.context,
-                                        ))
-                
-                feed_list.append(dict(id=feed.feed_id,
-                                    title = feed.title,
-                                    context=feed.context,
-                                    nickname=user.nickname,
-                                    longitude=user.longitude,
-                                    latitude=user.latitude,
-                                    comment_list=comment_list,
+        #모든 피드 데이터 불러오기
+        feed_object_list = Feed.objects.all().order_by("-feed_id")
+        feed_list = []
+        for feed in feed_object_list: 
+            #피드를 쓴 user 객체 생성
+            user = User.objects.filter(id= feed.user.id).first() # 수정
+            print("피드를 쓴 user객체 생성")
+            # 피드에 달린 댓글 전부가져오기
+            comment_object_list = Comment.objects.filter(feed_id=feed.feed_id) 
+            comment_list = []
+            for comment in comment_object_list:
+                # 댓글을 쓴 유저 객체 가져오기
+                user = User.objects.filter(id=comment.user.id).first() # 수정 
+                comment_list.append(dict(feed_id = comment.feed.feed_id,
+                                    user_id=user.id,
+                                    comment_id=comment.comment_id,
+                                    user_nickname = user.nickname,
+                                    context = comment.context,
                                     ))
             
-            return JsonResponse({"feeds": feed_list, "user": user.user_id})
-        except:
-            return JsonResponse({'message' : 'JSON_DECODE_ERROR'}, status = 400)
+            feed_list.append(dict(id=feed.feed_id,
+                                title = feed.title,
+                                context=feed.context,
+                                nickname=user.nickname,
+                                longitude=user.longitude,
+                                latitude=user.latitude,
+                                comment_list=comment_list,
+                                ))
+        
+        return JsonResponse({"feeds": feed_list, "user": user.id})
 
 class Feed_View_Set(APIView):
-    # 피드 생성
     def post(self, request):
-        try:
-            # feed 생성 
-            user_id = request.data.get("user_id")
-            title = request.data.get('title')
-            context = request.data.get('context')
-            longitude = request.data.get('longitude')
-            latitude = request.data.get('latitude')
-            image = request.FILES.getlist('FILES')
-            
-            Feed.objects.create(
-                user_id = user_id,
-                title = title,
-                context = context,
-                status = True,
-                longitude = longitude,
-                latitude = latitude )
-            
-            return JsonResponse({"message": "Feed created successfully."})
-        except:
-            return JsonResponse({'message' : 'JSON_DECODE_ERROR'}, status = 400)            
-    # 피드 업데이트
-    def patch(self, request, feed_id):
-        try:
+        serializer = FeedSerializer(data=request.data,  context={'request': request})
+        print("break point")    
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
+    
+    def get(self, request, feed_id):
             # 피드의 ID를 가져오기
             if feed_id is None:
-                return JsonResponse({"message": "feed_id is required."}, status=400)
+                return Response({"message": "feed_id is required."}, status=status.HTTP_400_BAD_REQUEST)
 
             # 피드의 ID를 기준으로 해당 피드를 가져오기.
             feed = Feed.objects.filter(feed_id=feed_id).first()
             if feed is None:
-                return JsonResponse({"message": "Feed not found."}, status=404)
+                return Response({"message": "Feed not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            # 수정할 필드를 가져오기
-            title = request.data.get("title")
-            context = request.data.get("context")
-            longitude = request.data.get("longitude")
-            latitude = request.data.get("latitude")
+            # Serializer를 사용하여 피드 정보를 JSON으로 변환
+            serializer = FeedSerializer(feed)
 
-            # 수정할 필드를 업데이트
-            if title is not None:
-                feed.title = title
-            if context is not None:
-                feed.context = context
-            if longitude is not None:
-                feed.longitude = longitude
-            if latitude is not None:
-                feed.latitude = latitude
+            # 피드 이미지 URL 정보 가져오기
+            feed_images = Feed_image.objects.filter(feed_id=feed_id)
+            image_urls = [img.image.url for img in feed_images]
 
-            # 변경사항 저장
-            feed.save()
+            # JSON 응답에 이미지 URL 정보 추가하여 보내기
+            response_data = serializer.data
+            response_data['image_urls'] = image_urls
+            return Response(response_data, status=status.HTTP_200_OK)
+    
+    # 피드 업데이트
+    def put(self, request, feed_id):
 
-            return JsonResponse({"message": "Feed updated successfully."})
-        except:
-            return JsonResponse({'message' : 'JSON_DECODE_ERROR'}, status = 400)                
+        # 피드의 ID를 가져오기
+        if feed_id is None:
+            return Response({"message": "feed_id is required."}, status=400)
+
+        # 피드의 ID를 기준으로 해당 피드를 가져오기.
+        feed = Feed.objects.filter(feed_id=feed_id).first()
+        if feed is None:
+            return Response({"message": "Feed not found."}, status=404)
+
+        # Serializer를 생성할 때 context에 요청(request) 객체를 전달합니다.
+        serializer = FeedSerializer(feed, data=request.data, context={'request': request})
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=200)
+
+
+        
     #피드 삭제
     def delete(self, request, feed_id):
         try:
@@ -128,7 +126,7 @@ class Feed_View_Set(APIView):
 
             return JsonResponse({"message": "Feed deleted successfully."})
         except:
-            return JsonResponse({'message' : 'JSON_DECODE_ERROR'}, status = 400)                
+            return JsonResponse({'message' : 'JSON_DECODE_ERROR'}, status = 400)                            
 
 class Comment_View_Set(APIView):
     # 댓글 생성
@@ -196,11 +194,3 @@ class Comment_View_Set(APIView):
 
 
         
-class CreateFeedView(APIView):
-    def post(self, request):
-        # 요청 데이터를 FeedSerializer에 전달하여 유효성 검사와 객체 생성을 수행합니다.
-        serializer = FeedSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    

@@ -25,7 +25,7 @@ class Feed_image(models.Model):
 
 class Comment(models.Model):
     feed = models.ForeignKey(Feed, on_delete=models.CASCADE, related_name='feed_in_comment') # 다대일 관계 지정
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feed_in_user') # FK, related_name을 id값으로 식별
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_in_comment') # FK, related_name을 id값으로 식별
     comment_id = models.BigAutoField(help_text="Comment ID", primary_key=True)
     context = models.TextField(max_length=2000)  
     created_date = models.DateTimeField(auto_now_add=True) # 레코드 추가 시 자동 추가
