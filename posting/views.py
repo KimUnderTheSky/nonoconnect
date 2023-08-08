@@ -15,7 +15,7 @@ from django.conf import settings
 class Main(APIView):
     # 메인화면 피드 불러오기
     def get(self, request):
-        # session에 user_id값이 없으면 에러
+        # session에 user_id값이 없으면 에러 / 현재는 session대신 request에 user_id 값 사용
         user_id = request.data.get('user_id', None)
         if user_id is None:
             return JsonResponse ({'message':'NOSESSION_ERROR'}, status = 400)
@@ -28,14 +28,13 @@ class Main(APIView):
         feed_list = []
         for feed in feed_object_list: 
             #피드를 쓴 user 객체 생성
-            user = User.objects.filter(id= feed.user.id).first() # 수정
-            print("피드를 쓴 user객체 생성")
+            user = User.objects.filter(id= feed.user.id).first()
             # 피드에 달린 댓글 전부가져오기
             comment_object_list = Comment.objects.filter(feed_id=feed.feed_id) 
             comment_list = []
             for comment in comment_object_list:
                 # 댓글을 쓴 유저 객체 가져오기
-                user = User.objects.filter(id=comment.user.id).first() # 수정 
+                user = User.objects.filter(id=comment.user.id).first() 
                 comment_list.append(dict(feed_id = comment.feed.feed_id,
                                     user_id=user.id,
                                     comment_id=comment.comment_id,
@@ -52,16 +51,17 @@ class Main(APIView):
                                 comment_list=comment_list,
                                 ))
         
-        return JsonResponse({"feeds": feed_list, "user": user.id})
+        return JsonResponse({"feeds": feed_list, "user": user})
 
 class Feed_View_Set(APIView):
     def post(self, request):
-        serializer = FeedSerializer(data=request.data,  context={'request': request})
-        print("break point")    
+        # request 내 데이터를 통해 FeedSerailizer 객체 생성
+        serializer = FeedSerializer(data=request.data,  context={'request': request}) 
 
+        # 유효성검사
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response({"message": "Feed is created."}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
     
     def get(self, request, feed_id):
@@ -74,7 +74,7 @@ class Feed_View_Set(APIView):
             if feed is None:
                 return Response({"message": "Feed not found."}, status=status.HTTP_404_NOT_FOUND)
 
-            # Serializer를 사용하여 피드 정보를 JSON으로 변환
+            # Serializer를 사용하여 피드 정보를 JSON으로 변환(파이썬 객체 to Json)
             serializer = FeedSerializer(feed)
 
             # 피드 이미지 URL 정보 가져오기
@@ -103,7 +103,7 @@ class Feed_View_Set(APIView):
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=200)
+            return Response({"message": "Feed is updated."}, status=status.HTTP_200_OK)
 
 
         
@@ -125,8 +125,8 @@ class Feed_View_Set(APIView):
             feed.save()
 
             return JsonResponse({"message": "Feed deleted successfully."})
-        except:
-            return JsonResponse({'message' : 'JSON_DECODE_ERROR'}, status = 400)                            
+        except Exception as e:
+            return JsonResponse({"message": str(e)}, status=500)                  
 
 class Comment_View_Set(APIView):
     # 댓글 생성
@@ -143,8 +143,8 @@ class Comment_View_Set(APIView):
                 status = True )
             
             return JsonResponse({"message": "Comment created successfully."})
-        except:
-            return JsonResponse({'message' : 'JSON_DECODE_ERROR'}, status = 400)                
+        except Exception as e:
+            return JsonResponse({"message": str(e)}, status=500)                 
     # 댓글 업데이트
     def patch(self, request, feed_id, comment_id):
         try:
@@ -169,8 +169,8 @@ class Comment_View_Set(APIView):
             comment.save()
 
             return JsonResponse({"message": "Comment updated successfully."})
-        except:
-            return JsonResponse({'message' : 'JSON_DECODE_ERROR'}, status = 400)    
+        except Exception as e:
+            return JsonResponse({"message": str(e)}, status=500)   
     #댓글 삭제
     def delete(self, request, feed_id, comment_id):
         try:            
@@ -189,8 +189,8 @@ class Comment_View_Set(APIView):
             comment.save()
 
             return JsonResponse({"message": "Comment deleted successfully."})    
-        except:
-            return JsonResponse({'message' : 'JSON_DECODE_ERROR'}, status = 400)        
+        except Exception as e:
+            return JsonResponse({"message": str(e)}, status=500)   
 
 
         

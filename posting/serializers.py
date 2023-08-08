@@ -61,10 +61,6 @@ class FeedSerializer(serializers.ModelSerializer):
         return feed
     
     def update(self, instance, validated_data):
-        print("instance ", instance)
-        # feed_id = instance.feed_id
-        # # Feed 인스턴스 가져오기
-        # feed = Feed.objects.get(pk=feed_id)
         # User 인스턴스 가져오기
         user_id = validated_data.pop('user_id')  # 'user_id' 키의 값을 빼고 따로 저장
         user = User.objects.get(pk=user_id)  # user_id를 이용하여 User 인스턴스 가져오기
