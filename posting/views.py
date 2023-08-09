@@ -21,7 +21,22 @@ class Main(APIView):
             return JsonResponse ({'message':'NOSESSION_ERROR'}, status = 400)
         
         # 해당 사용자 유저 정보 불러오기
-        user = User.objects.filter(id = user_id).first()
+        user_info = User.objects.filter(id = user_id).first()
+        if user_info:
+            user_data = {
+                "id": user_info.id,
+                "nickname": user_info.nickname,
+                "longitude": user_info.longitude,
+                "latitude": user_info.latitude,
+                "birthdate": user_info.birthdate,
+                "profile_image": user_info.profileImage.url if user_info.profileImage else None,
+
+
+                # 필요한 다른 사용자 정보도 추가
+            }
+        else:
+            return JsonResponse({'message': 'User not found'}, status=404)
+        
 
         #모든 피드 데이터 불러오기
         feed_object_list = Feed.objects.all().order_by("-feed_id")
@@ -51,7 +66,7 @@ class Main(APIView):
                                 comment_list=comment_list,
                                 ))
         
-        return JsonResponse({"feeds": feed_list, "user": user})
+        return JsonResponse({"feeds": feed_list, "user": user_data})
 
 class Feed_View_Set(APIView):
     def post(self, request):

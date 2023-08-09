@@ -49,7 +49,7 @@ class User(models.Model):
     sex = models.BooleanField(null=True)
     birthdate = models.DateTimeField(null=True)
     nickname = models.CharField(max_length=64, unique=True, verbose_name="이름")
-    profileImage = models.ImageField()
+    profileImage = models.ImageField(null=True)
     #전화번호 인증을 위한 Column
     phone = models.CharField(max_length=15, unique=True, verbose_name= "전화번호")
     latitude = models.FloatField(null=True)
