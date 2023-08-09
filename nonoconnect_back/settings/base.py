@@ -52,10 +52,11 @@ DJANGO_APPS  = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # 이후 추가
-    'posting.apps.PostingConfig',
-    "rest_framework"
-    # User
-    'users.apps.Usersconfig'
+    # 'posting.apps.PostingConfig',
+    'posting',
+    "rest_framework",
+    # User(오타변경)
+    'users.apps.UsersConfig'
 
 ]
 PROJECT_APPS = [
@@ -69,7 +70,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',

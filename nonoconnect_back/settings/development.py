@@ -1,7 +1,7 @@
 # 개발 환경
 from .base import *
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"] # 도메인, ip
 
