@@ -52,11 +52,11 @@ DJANGO_APPS  = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # 이후 추가
-    'posting.apps.PostingConfig',
-    "rest_framework"
-    # User
-    'users.apps.Usersconfig'
-
+    # 'posting.apps.PostingConfig',
+    'posting',
+    "rest_framework",
+    # User(오타변경)
+    'users'
 ]
 PROJECT_APPS = [
 ]
@@ -69,7 +69,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -151,6 +151,3 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = "/Feed/"
-
-# user 앱에서 내가 설정한 User를 사용하겠다고 설정
-AUTH_USER_MODEL = 'user.User'

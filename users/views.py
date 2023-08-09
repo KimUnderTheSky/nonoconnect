@@ -3,15 +3,11 @@ import json, re , bcrypt, jwt
 
 from json.decoder import JSONDecodeError
 from django.http import JsonResponse
-from django.views import View
 from django.db.models import Q
 from rest_framework.views import APIView
 
-from my_settings import SECRET, ALGORITHM
+from my_settings import *
 from users.models import *
-
-# from django.shortcuts import render
-# from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import redirect
 
 # Create your views here.
@@ -19,10 +15,11 @@ from django.shortcuts import redirect
 PASSWORD_MIN_LEN = 8
 
 
-class SignUp(View):
+class SignUp(APIView):
     def post(self, request):
         try :
             data = json.loads(request.body)
+            print(data)
 
             password = data.get('password', None)
             name = data.get('name', None)
@@ -101,14 +98,16 @@ class SignUp(View):
     def patch(self, request):
         pass
 
-
-class LogIn(View):
+class LogIn(APIView):
     def post(self, request):
         try:
             data = json.loads(request.body)
+            print(data)
             
             user_id = data.get('id', None)
+            print(user_id)
             password = data.get('password', None)
+            print(password)
 
 
             if not (
@@ -123,44 +122,16 @@ class LogIn(View):
             if not bcrypt.checkpw(password.encode('UTF-8'), user.password.encode('utf-8')):
                 return JsonResponse({'message' : 'INVALID_PASSWORD'}, status = 400)
             
-            access_token = jwt.encode({"id":user.id}, SECRET, algorithm=ALGORITHM)
+            access_token = jwt.encode({"id":user.id}, SECRET_KEY, algorithm=ALGORITHM)
 
             return JsonResponse({'message' : 'SUCCESS', 'Authorization': access_token}, status = 200)
         except JSONDecodeError:
             return JsonResponse({'message' : 'JSON_DECODE_ERROR'}, status = 400)
 
-class Logout(View) :
-    pass
+def logout(request) :
 
-# def login_view(request):
-#     if request.method == "POST":
-#         print(request.POST)
+    return redirect("/login")
 
-#     return render(request, "")
-
-# def logout_view(request) :
-#     logout(request)
-#     return redirect("")
-
-
-#비밀번호찾기
-class FindPassword():
-    def get(self, request):
-        phone_num = request.query_params["phone"]
-
-        if User.objects.filter(phone = phone_num).exists():
-            user_profile = User.objects.get(phone = phone_num)
-
-    def patch(self, request) :
-        new_Password = request.data.get("new_password")
-
-        try :
-            user = User.objects.get()
-            user.set_password()
-            
-        except KeyError:
-            return JsonResponse ({'message':'KEY_ERROR'}, status = 400)
-        
 
 # 전화번호 인증
 class SmsAuth(APIView):
@@ -171,5 +142,19 @@ class SmsAuth(APIView):
         except KeyError:
             return JsonResponse ({'message':'KEY_ERROR'}, status = 400)
         else :
-            AuthSMS.objects.update_or_create(phoneNumber = phoneNumber)
-            return
+            User.objects.update(phoneNumber = phoneNumber)
+            return JsonResponse ({'message' : 'SUCCESS'}, statuts = 201)
+        
+    def get(self, request) : 
+        try:
+            input_phonenum = request.data.get("phone_num")
+            input_authnum = request.data.get("auth_num")
+        except KeyError:
+            Auth_result = User.AuthNumCheck(input_phonenum , input_authnum)
+
+            if Auth_result == True : 
+                return JsonResponse ({'message' : 'SUCCESS'}, statuts = 201)
+            
+            elif Auth_result == False : 
+                return JsonResponse({'message' : 'Auth_falied'}, status = 400)
+
