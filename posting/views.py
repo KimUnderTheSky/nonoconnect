@@ -2,7 +2,7 @@ import uuid
 from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework.views import APIView
-from .models import Feed, Comment, User, Feed_image
+from .models import Feed, Comment, User, Feed_image, Call
 from .serializers import FeedSerializer, FeedImageSerializer
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
@@ -99,6 +99,20 @@ class Feed_View_Set(APIView):
             # JSON 응답에 이미지 URL 정보 추가하여 보내기
             response_data = serializer.data
             response_data['image_urls'] = image_urls
+
+            comment_object_list = Comment.objects.filter(feed_id=feed.feed_id) 
+            comment_list = []
+            for comment in comment_object_list:
+                # 댓글을 쓴 유저 객체 가져오기
+                user = User.objects.filter(id=comment.user.id).first() 
+                comment_list.append(dict(feed_id = comment.feed.feed_id,
+                                    user_id=user.id,
+                                    comment_id=comment.comment_id,
+                                    user_nickname = user.nickname,
+                                    context = comment.context,
+                                    ))
+
+            response_data['comments'] = comment_list    
             return Response(response_data, status=status.HTTP_200_OK)
     
     # 피드 업데이트
@@ -148,7 +162,7 @@ class Comment_View_Set(APIView):
     def post(self, request, feed_id):
         try:
             user_id = request.data.get("user_id")
-            feed_id = request.data.get('feed_id')
+            # feed_id = request.data.get('feed_id')
             context = request.data.get('context')
 
             Comment.objects.create(
@@ -209,3 +223,56 @@ class Comment_View_Set(APIView):
 
 
         
+class Call_View_Set(APIView):
+    # 요청 생성
+    def post(self, request, feed_id):
+        try:
+            feed = Feed.objects.filter(pk = feed_id).first()
+            if feed.status == 0:
+                return JsonResponse({"message": "feed already accepted call"})
+
+            # Call이 요청상태이면 불가, Feed가 없으면 불가
+
+
+            call_user_id = request.data.get("user_id")
+            call_user = User.objects.filter(id = call_user_id).first()
+
+            # 요청 기록 생성
+            Call.objects.create(
+                call_user = call_user,
+                feed_id = feed_id,
+                call_status = True)
+            
+            # 피드 수락됨 상태
+            feed = Feed.objects.filter(feed_id=feed_id).first()            
+            feed.status = False
+            feed.save()
+
+            return JsonResponse({"message": "Call created successfully."})
+        except Exception as e:
+            return JsonResponse({"message": str(e)}, status=500)     
+        
+    # 요청 취소
+    def delete(self, request, feed_id):
+        try:
+            feed = Feed.objects.filter(pk = feed_id).first()
+            if feed.status == 1:
+                return JsonResponse({"message": "feed is wating call"})
+        
+            call_user_id = request.data.get("user_id")
+            call_user = User.objects.filter(id = call_user_id).first()
+
+            # 요청 기록 생성
+            Call.objects.create(
+                call_user = call_user,
+                feed_id = feed_id,
+                call_status = False)
+            
+            # 피드 대기 중 상태
+            feed = Feed.objects.filter(feed_id=feed_id).first()          
+            feed.status = True
+            feed.save()
+
+            return JsonResponse({"message": "Call canceled successfully."})
+        except Exception as e:
+            return JsonResponse({"message": str(e)}, status=500)   

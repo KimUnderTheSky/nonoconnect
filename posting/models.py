@@ -40,3 +40,13 @@ class Comment_image(models.Model):
 
     class Meta:
         db_table = 'Comment_image'
+
+class Call(models.Model):
+    feed = models.ForeignKey(Feed, on_delete=models.CASCADE, related_name='feed_in_call') # 다대일 관계 지정
+    call_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_in_call') # FK, related_name을 id값으로 식별
+    call_id = models.BigAutoField(help_text="Call ID", primary_key=True)
+    created_date = models.DateTimeField(auto_now_add=True) # 레코드 추가 시 자동 추가
+    updated_date = models.DateTimeField(auto_now=True) # 레코드 변경 시 자동추가
+    call_status = models.BooleanField(default=True)
+    class Meta:
+        db_table = 'Call'
