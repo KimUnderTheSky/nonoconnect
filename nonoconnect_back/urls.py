@@ -22,7 +22,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('User/', include("users.urls")),
+    path('account/', include("account.urls")),
     path('posting/', include("posting.urls")),  # 새로운 패턴 추가
     path('', Main.as_view(), name='main'),  # /main/ 경로에 Main View를 매핑
 ]

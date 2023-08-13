@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from posting.models import Feed, Feed_image, Comment, Comment_image 
-from users.models import User
+from account.models import account
 import os, uuid
 from django.conf import settings
 class FeedImageSerializer(serializers.ModelSerializer):
@@ -42,7 +42,7 @@ class FeedSerializer(serializers.ModelSerializer):
             image_data.append({'image': os.path.join(settings.MEDIA_URL,"posting", unique_filename)})
         
         # User 인스턴스 가져오기
-        user = User.objects.get(pk=user_id)  # user_id를 이용하여 User 인스턴스 가져오기
+        user = account.objects.get(pk=user_id)  # user_id를 이용하여 User 인스턴스 가져오기
         print("user객체는!!! ", user)
         # Feed 객체를 생성하고 저장합니다.
         feed = Feed.objects.create(
@@ -63,7 +63,7 @@ class FeedSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         # User 인스턴스 가져오기
         user_id = self.context['request'].data['user_id']  # 'user_id' 키의 값을 빼고 따로 저장
-        user = User.objects.get(pk=user_id)  # user_id를 이용하여 User 인스턴스 가져오기
+        user = account.objects.get(pk=user_id)  # user_id를 이용하여 User 인스턴스 가져오기
 
         # Feed 객체를 업데이트합니다.
         instance.title = self.data.get('title')

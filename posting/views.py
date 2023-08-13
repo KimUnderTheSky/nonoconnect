@@ -2,7 +2,7 @@ import uuid
 from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework.views import APIView
-from .models import Feed, Comment, User, Feed_image, Call
+from .models import Feed, Comment, account, Feed_image, Call
 from .serializers import FeedSerializer, FeedImageSerializer
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
@@ -21,7 +21,7 @@ class Main(APIView):
             return JsonResponse ({'message':'NOSESSION_ERROR'}, status = 400)
         
         # 해당 사용자 유저 정보 불러오기
-        user_info = User.objects.filter(id = user_id).first()
+        user_info = account.objects.filter(id = user_id).first()
         if user_info:
             user_data = {
                 "id": user_info.id,
@@ -43,13 +43,13 @@ class Main(APIView):
         feed_list = []
         for feed in feed_object_list: 
             #피드를 쓴 user 객체 생성
-            user = User.objects.filter(id= feed.user.id).first()
+            user = account.objects.filter(id= feed.user.id).first()
             # 피드에 달린 댓글 전부가져오기
             comment_object_list = Comment.objects.filter(feed_id=feed.feed_id) 
             comment_list = []
             for comment in comment_object_list:
                 # 댓글을 쓴 유저 객체 가져오기
-                user = User.objects.filter(id=comment.user.id).first() 
+                user = account.objects.filter(id=comment.user.id).first() 
                 comment_list.append(dict(feed_id = comment.feed.feed_id,
                                     user_id=user.id,
                                     comment_id=comment.comment_id,
@@ -104,7 +104,7 @@ class Feed_View_Set(APIView):
             comment_list = []
             for comment in comment_object_list:
                 # 댓글을 쓴 유저 객체 가져오기
-                user = User.objects.filter(id=comment.user.id).first() 
+                user = account.objects.filter(id=comment.user.id).first() 
                 comment_list.append(dict(feed_id = comment.feed.feed_id,
                                     user_id=user.id,
                                     comment_id=comment.comment_id,
@@ -235,7 +235,7 @@ class Call_View_Set(APIView):
 
 
             call_user_id = request.data.get("user_id")
-            call_user = User.objects.filter(id = call_user_id).first()
+            call_user = account.objects.filter(id = call_user_id).first()
 
             # 요청 기록 생성
             Call.objects.create(
@@ -260,7 +260,7 @@ class Call_View_Set(APIView):
                 return JsonResponse({"message": "feed is wating call"})
         
             call_user_id = request.data.get("user_id")
-            call_user = User.objects.filter(id = call_user_id).first()
+            call_user = account.objects.filter(id = call_user_id).first()
 
             # 요청 기록 생성
             Call.objects.create(

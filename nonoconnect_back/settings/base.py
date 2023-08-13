@@ -51,12 +51,9 @@ DJANGO_APPS  = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 이후 추가
-    # 'posting.apps.PostingConfig',
     'posting',
     "rest_framework",
-    # User(오타변경)
-    'users.apps.UsersConfig'
+    'account'
 
 ]
 PROJECT_APPS = [
