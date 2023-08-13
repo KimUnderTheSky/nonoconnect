@@ -7,7 +7,7 @@ from django.db.models import Q
 from rest_framework.views import APIView
 from datetime import datetime
 from django.contrib.auth.hashers import make_password, check_password
-
+from django.contrib.sessions.models import Session
 from account.models import *
 from django.shortcuts import redirect
 
@@ -121,3 +121,12 @@ class account_Login(APIView):
 
         except JSONDecodeError:
             return JsonResponse({'message': 'JSON_DECODE_ERROR'}, status=400)
+
+
+class account_Logout(APIView):
+    def post(self, request):
+        session_key = request.session.session_key
+        if session_key:
+            Session.objects.filter(session_key=session_key).delete()
+
+        return redirect('/')
