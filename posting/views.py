@@ -72,7 +72,7 @@ class Feed_View_Set(APIView):
     def post(self, request):
         # request 내 데이터를 통해 FeedSerailizer 객체 생성
         serializer = FeedSerializer(data=request.data,  context={'request': request}) 
-
+        print("serializer", serializer)
         # 유효성검사
         if serializer.is_valid():
             serializer.save()
