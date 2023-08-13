@@ -15,18 +15,19 @@ class FeedImageSerializer(serializers.ModelSerializer):
 class FeedSerializer(serializers.ModelSerializer):
 
     images = FeedImageSerializer(many=True, read_only=True)
-    user_id = serializers.IntegerField()
+    user_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = Feed
-        fields = ['feed_id', 'title', 'context', 'created_date', 'updated_date', 'status', 'longitude', 'latitude', 'user_id','images']
-        
-        
+        fields = ['feed_id', 'title', 'context', 'created_date', 'updated_date', 'status', 'longitude', 'latitude','images','user_id']
+
+
     def create(self, validated_data):
         # 이미지들을 context의 request.FILES에서 가져옵니다.
         image_set = self.context['request'].FILES.getlist("FILES")
         image_data = []
-
+        user_id = self.context['request'].data['user_id']
+        print("user_id는!!! ", user_id)
         for image in image_set:
             # 이미지 파일 이름을 고유하게 만듦
             unique_filename = f"{uuid.uuid4().hex}{os.path.splitext(image.name)[1]}"
@@ -41,9 +42,8 @@ class FeedSerializer(serializers.ModelSerializer):
             image_data.append({'image': os.path.join(settings.MEDIA_URL,"posting", unique_filename)})
         
         # User 인스턴스 가져오기
-        user_id = validated_data.pop('user_id')  # 'user' 키의 값을 빼고 따로 저장
         user = User.objects.get(pk=user_id)  # user_id를 이용하여 User 인스턴스 가져오기
-
+        print("user객체는!!! ", user)
         # Feed 객체를 생성하고 저장합니다.
         feed = Feed.objects.create(
             title=self.data.get('title'),
@@ -62,7 +62,7 @@ class FeedSerializer(serializers.ModelSerializer):
     
     def update(self, instance, validated_data):
         # User 인스턴스 가져오기
-        user_id = validated_data.pop('user_id')  # 'user_id' 키의 값을 빼고 따로 저장
+        user_id = self.context['request'].data['user_id']  # 'user_id' 키의 값을 빼고 따로 저장
         user = User.objects.get(pk=user_id)  # user_id를 이용하여 User 인스턴스 가져오기
 
         # Feed 객체를 업데이트합니다.
