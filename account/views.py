@@ -6,7 +6,7 @@ from django.http import JsonResponse
 from django.db.models import Q
 from rest_framework.views import APIView
 from datetime import datetime
-
+from django.contrib.auth.hashers import make_password, check_password
 
 from account.models import *
 from django.shortcuts import redirect
@@ -71,11 +71,11 @@ class account_Signup(APIView):
                 Q(nickname = data['nickname'])
             ).exists():
                 return JsonResponse({'message' : 'ALREADY_EXISTS'}, status = 400)
-
-
+            #비밀번호 암호화
+            encrypted_password = make_password(password)
             account.objects.create(
                 nickname = nickname,
-                password = password,
+                password = encrypted_password,
                 name = name,
                 email = email,
                 phone = phone,
@@ -110,9 +110,14 @@ class account_Login(APIView):
 
             user = account.objects.get(nickname = login_id)
 
-            if user.password != login_password : 
-                return JsonResponse({'message': 'INVALID_PASSWORD'}, status=401)
+            if check_password(login_password, user.password):
+                # 인증 성공
+                print("로그인 성공")
+                request.session['user_id'] = user.id
+                return redirect('/')
+            else:
+                # 인증 실패
+                return JsonResponse({'message': 'Login failed'}, status=401)
 
-            return JsonResponse({'message': 'SUCCESS'}, status=200)
         except JSONDecodeError:
             return JsonResponse({'message': 'JSON_DECODE_ERROR'}, status=400)

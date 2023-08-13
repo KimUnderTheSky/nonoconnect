@@ -16,9 +16,9 @@ class Main(APIView):
     # 메인화면 피드 불러오기
     def get(self, request):
         # session에 user_id값이 없으면 에러 / 현재는 session대신 request에 user_id 값 사용
-        user_id = request.data.get('user_id', None)
+        user_id = request.session.get('user_id')
         if user_id is None:
-            return JsonResponse ({'message':'NOSESSION_ERROR'}, status = 400)
+            return JsonResponse({'message': 'NOSESSION_ERROR'}, status=400)
         
         # 해당 사용자 유저 정보 불러오기
         user_info = account.objects.filter(id = user_id).first()
