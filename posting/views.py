@@ -44,6 +44,14 @@ class Main(APIView):
         for feed in feed_object_list: 
             #피드를 쓴 user 객체 생성
             user = account.objects.filter(id= feed.user.id).first()
+            feed_user = [{
+                "id": user.id,
+                "nickname": user.nickname,
+                "longitude": user.longitude,
+                "latitude": user.latitude,
+                # 필요한 다른 사용자 정보도 추가
+            }]
+
             # 피드에 달린 댓글 전부가져오기
             comment_object_list = Comment.objects.filter(feed_id=feed.feed_id) 
             comment_list = []
@@ -64,6 +72,7 @@ class Main(APIView):
                                 longitude=user.longitude,
                                 latitude=user.latitude,
                                 comment_list=comment_list,
+                                feed_user = feed_user
                                 ))
         
         return JsonResponse({"feeds": feed_list, "user": user_data})
@@ -100,6 +109,7 @@ class Feed_View_Set(APIView):
             response_data = serializer.data
             response_data['image_urls'] = image_urls
 
+            #댓글 정보 가져오기
             comment_object_list = Comment.objects.filter(feed_id=feed.feed_id) 
             comment_list = []
             for comment in comment_object_list:
@@ -111,8 +121,18 @@ class Feed_View_Set(APIView):
                                     user_nickname = user.nickname,
                                     context = comment.context,
                                     ))
-
-            response_data['comments'] = comment_list    
+            response_data['comments'] = comment_list      
+            
+            #유저 정보 가져오기    
+            user = account.objects.filter(id= feed.user.id).first()
+            feed_user = [{
+                "id": user.id,
+                "nickname": user.nickname,
+                "longitude": user.longitude,
+                "latitude": user.latitude,
+                # 필요한 다른 사용자 정보도 추가
+            }]
+            response_data['feed_user'] = feed_user    
             return Response(response_data, status=status.HTTP_200_OK)
     
     # 피드 업데이트

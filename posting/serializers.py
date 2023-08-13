@@ -27,7 +27,7 @@ class FeedSerializer(serializers.ModelSerializer):
         image_set = self.context['request'].FILES.getlist("FILES")
         image_data = []
         user_id = self.context['request'].data['user_id']
-        print("user_id는!!! ", user_id)
+
         for image in image_set:
             # 이미지 파일 이름을 고유하게 만듦
             unique_filename = f"{uuid.uuid4().hex}{os.path.splitext(image.name)[1]}"
@@ -43,7 +43,7 @@ class FeedSerializer(serializers.ModelSerializer):
         
         # User 인스턴스 가져오기
         user = account.objects.get(pk=user_id)  # user_id를 이용하여 User 인스턴스 가져오기
-        print("user객체는!!! ", user)
+
         # Feed 객체를 생성하고 저장합니다.
         feed = Feed.objects.create(
             title=self.data.get('title'),
