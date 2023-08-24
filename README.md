@@ -108,6 +108,8 @@
 
 </p> 
 
+---
+
 ### 🔨 기술 스택(Techinque Used)
 >#### Back-end
 |Django|MySQL|
@@ -126,6 +128,8 @@
  <img src='https://github.com/KimUnderTheSky/nonoconnect/assets/96776691/ddef2300-1781-47da-9218-5b939ce7c44c'>
 
 </p> 
+
+---
 
 ### 💡 기대효과
 **1. 지역 유대감 상승**
