@@ -91,6 +91,13 @@
 ---
 
 ## 3. 시스템 설계
+### 🖇 ERD
+- 이미지 클릭시 자세한 ERD를 확인하실 수 있습니다.
+
+<div align="center"><a href="https://www.erdcloud.com/d/pZTzY9zMnBS38e7v2" target = "_blank"><img src="https://github.com/KimUnderTheSky/nonoconnect/assets/96776691/7c6b28b2-e1e3-43d3-b923-93e03098f392"></a></div>
+
+---
+
 ### ⚙ 시스템 아키텍처
 <p align='center'>
 <br>
